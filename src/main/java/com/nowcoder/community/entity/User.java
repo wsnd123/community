@@ -10,7 +10,7 @@ public class User {
     private String email;
     private int type;
     private int status;
-    private String activationCodes;
+    private String activationCode;
     private String headerUrl;
     private Date createTime;
 
@@ -18,7 +18,7 @@ public class User {
 
     }
 
-    public User(int id, String username, String password, String salt, String email, int type, int status, String activationCodes, String headerUrl, Date createTime) {
+    public User(int id, String username, String password, String salt, String email, int type, int status, String activationCode, String headerUrl, Date createTime) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -26,7 +26,7 @@ public class User {
         this.email = email;
         this.type = type;
         this.status = status;
-        this.activationCodes = activationCodes;
+        this.activationCode = activationCode;
         this.headerUrl = headerUrl;
         this.createTime = createTime;
     }
@@ -41,7 +41,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", type=" + type +
                 ", status=" + status +
-                ", activationCodes='" + activationCodes + '\'' +
+                ", activationCodes='" + activationCode + '\'' +
                 ", headerUrl='" + headerUrl + '\'' +
                 ", createTime=" + createTime +
                 '}';
@@ -103,12 +103,12 @@ public class User {
         this.status = status;
     }
 
-    public String getActivationCodes() {
-        return activationCodes;
+    public String getActivationCode() {
+        return activationCode;
     }
 
-    public void setActivationCodes(String activationCodes) {
-        this.activationCodes = activationCodes;
+    public void setActivationCode(String activationCode) {
+        this.activationCode = activationCode;
     }
 
     public String getHeaderUrl() {
