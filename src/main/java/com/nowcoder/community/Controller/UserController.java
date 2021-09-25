@@ -140,7 +140,6 @@ public class UserController {
             String ticket = CookieUtil.getValue(request, "ticket");
             userService.logout(ticket);
 
-
             model.addAttribute("msg", "密码修改成功，请重新登录!");
             model.addAttribute("target", "/login");
         }
