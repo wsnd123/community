@@ -3,6 +3,7 @@ package com.nowcoder.community.Controller;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.CookieUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,20 +48,20 @@ public class UserController {
     private HostHolder hostHolder;
 
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
-    public String getSettingPage(){
+    public String getSettingPage() {
         return "site/setting";
     }
 
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
-    public String uploadHeader(MultipartFile headerImage, Model model){
-        if (headerImage == null){
+    public String uploadHeader(MultipartFile headerImage, Model model) {
+        if (headerImage == null) {
             model.addAttribute("error", "您还没有选择图片！");
             return "site/setting";
         }
 
         String fileName = headerImage.getOriginalFilename();//得到原始的文件名
         String suffix = fileName.substring(fileName.lastIndexOf("."));//获取文件名最后一个点的索引开始截取字符串，即获取后缀
-        if (StringUtils.isBlank(suffix)){
+        if (StringUtils.isBlank(suffix)) {
             model.addAttribute("error", "文件的格式不正确");
             return "site/setting";
         }
@@ -85,14 +88,14 @@ public class UserController {
     }
 
     @RequestMapping(path = "/header/{fileName}", method = RequestMethod.GET)
-    public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response){
+    public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response) {
         // 服务器存放的路径
         fileName = uploadPath + "/" + fileName;
         // 文件后缀
         String suffix = fileName.substring(fileName.lastIndexOf("."));
         // 响应图片
         response.setContentType("image/" + suffix);
-        try(
+        try (
                 // 这么写 会自动关闭流  前提有close方法
                 FileInputStream fis = new FileInputStream(fileName); //输入流  读取文件
                 //OutputStream os = response.getOutputStream(); //也可以放在这里
@@ -100,12 +103,48 @@ public class UserController {
             OutputStream os = response.getOutputStream(); //输出流  spring MVC 会自动关闭
             byte[] buffer = new byte[1024]; // 设置缓冲区
             int b = 0; // 设置游标
-            while ((b = fis.read(buffer)) != -1){ // 读数据
+            while ((b = fis.read(buffer)) != -1) { // 读数据
                 os.write(buffer, 0, b); //写数据
             }
         } catch (IOException e) {
             logger.error("读取头像失败： " + e.getMessage());
         }
+    }
+
+    @RequestMapping(path = "/changePassword", method = RequestMethod.POST)
+    public String changePassword(String oldPassword, String newPassword, Model model, HttpServletRequest request) {
+        if (StringUtils.isBlank(oldPassword)) {
+            model.addAttribute("oldPasswordMsg", "原始密码不能为空！");
+            return "site/setting";
+        }
+        if (StringUtils.isBlank(newPassword)) {
+            model.addAttribute("newPasswordMsg", "新密码不能为空！");
+            return "site/setting";
+        }
+
+        User user = hostHolder.getUser();
+        String s = CommunityUtil.md5(oldPassword + user.getSalt());
+        if (!user.getPassword().equals(s)) {
+            model.addAttribute("oldPasswordMsg", "原始密码不正确！");
+            return "site/setting";
+        }
+        if (oldPassword.equals(newPassword)) {
+            model.addAttribute("newPasswordMsg", "新密码不能与原始密码相等！");
+            return "site/setting";
+        }
+
+        int i = userService.updatePassword(user.getId(), CommunityUtil.md5(newPassword + user.getSalt()));
+
+        if (i > 0){
+            hostHolder.clear();
+            String ticket = CookieUtil.getValue(request, "ticket");
+            userService.logout(ticket);
+
+
+            model.addAttribute("msg", "密码修改成功，请重新登录!");
+            model.addAttribute("target", "/login");
+        }
+        return "/site/operate-result";
     }
 
 }

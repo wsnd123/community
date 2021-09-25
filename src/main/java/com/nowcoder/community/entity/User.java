@@ -41,7 +41,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", type=" + type +
                 ", status=" + status +
-                ", activationCodes='" + activationCode + '\'' +
+                ", activationCode='" + activationCode + '\'' +
                 ", headerUrl='" + headerUrl + '\'' +
                 ", createTime=" + createTime +
                 '}';
